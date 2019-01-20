@@ -7,8 +7,13 @@ import matplotlib.image as mpimg
 from collections import namedtuple
 from itertools import count
 
+__all__ = ["normalize", "read_images", "similarity", "batch"]
+
 Sample = namedtuple('Sample', ['cls', 'idx','quat','img'])
 def normalize(mat):
+    """
+    Normalizes np.array to mean 0 and var 1
+    """
     out = np.empty_like(mat)
     for i in range(3):
         m = np.mean(mat[:,:,i])
@@ -16,7 +21,10 @@ def normalize(mat):
         out[:,:,i] = (mat[:,:,i] - m) / v
     return out
 
-def parse(folder, cls):
+def _read_folder(folder, cls, pattern = re.compile(r'[A-Za-z]+[0-9]+\.png')):
+    """
+    Helper function, iterates through a folder reading samples
+    """
     # quats
     quats = []
     with open(os.path.join(folder,'poses.txt'),'r') as f:
@@ -28,28 +36,37 @@ def parse(folder, cls):
 
     # images
     imgs = []
-    p = re.compile(r'[A-Za-z]+[0-9]+\.png')
+    
     for imname in os.listdir(folder):
-        if p.match(imname):
+        if pattern.match(imname):
             imgs.append(
                 normalize(mpimg.imread(os.path.join(folder,imname))))
             
     return [Sample(cls, idx, quat, img) for idx, quat, img in zip(count(),quats,imgs)]
 
 def read_images(path):
+    """
+    Returns a list of samples with all the images in `path`
+    """
     data = []
     for root, subfolders,_ in os.walk(path):
         for i,folder in enumerate(sorted(subfolders)):
-            data.append(parse(os.path.join(root,folder), i))
+            data.append(_read_folder(os.path.join(root,folder), i))
 
     return [l for lst in data for l in lst]
 
 def similarity(q1, q2):
+    """
+    Returns a measure of similarity between two quaternions
+    """
     return 2 * np.arccos(min(1,np.abs(q1 @ q2)))
 
 def batch(Sdb, Strain, n):
-    def gen(m):
-        for x in range(m):
+    """
+    Generates a batch of `n` elements
+    """
+    def gen():
+        for x in range(n):
             # Anchor: select random sample from Strain
             anchor = random.choice(Strain)
             # Puller: select most similar from Sdb
@@ -59,4 +76,4 @@ def batch(Sdb, Strain, n):
             yield anchor
             yield puller
             yield pusher
-    return list(gen(n))
+    return list(gen())

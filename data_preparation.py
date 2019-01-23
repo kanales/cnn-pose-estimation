@@ -73,7 +73,7 @@ def batch(Sdb, Strain, n):
             puller = max(Sdb, key = lambda x: similarity(x.quat,anchor.quat))
             # Pusher: same object different pose | random different object 
             pusher = random.choice([x for x in Sdb if x.cls != anchor.cls])
-            yield anchor
-            yield puller
-            yield pusher
-    return list(gen())
+            yield anchor.img
+            yield puller.img
+            yield pusher.img
+    return np.array(list(gen()))

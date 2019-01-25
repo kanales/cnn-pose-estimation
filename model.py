@@ -15,9 +15,9 @@ def loss(descriptors, m = 0.01):
     
     return L_trip + L_pair
 
-def cnn_model(b, mode):
-    input_layer = tf.convert_to_tensor(b)
-    C = b.shape[-1]
+def cnn_model(features, labels, mode):
+    input_layer = tf.convert_to_tensor(features)
+    C = features.shape[-1]
     conv1 = tf.layers.conv2d(
         inputs = input_layer,
         filters = 16,
@@ -51,14 +51,35 @@ def cnn_model(b, mode):
     )
 
     dense2 = tf.layers.dense(
-        inputs = dense,
+        inputs = dense1,
         units = 16,
         activation = tf.nn.relu
     )
     
 
-    L = loss(dense2)
-    optimizer = tf.train.AdamOptimizer()
-    train_op = optimizer.minimize(L)
+    # Mode selection
+
+    # Loss selection
+    if mode in (tf.estimator.ModeKeys.TRAIN, tf.estimator.ModeKeys.EVAL):
+        L = loss(dense2)
+    else:
+        L = None
+
+    # train_op selection
+    if mode == tf.estimator.ModeKeys.TRAIN:
+        optimizer = tf.train.AdamOptimizer()
+        train_op = optimizer.minimize(L)
+    else:
+        train_op = None
     
-    # TODO
+    # Prediction selection
+    if mode == tf.estimator.ModeKeys.PREDICT:
+        predictions = ...
+    else:
+        predictions = None
+    
+    return tf.estimator.EstimatorSpec(
+      mode=mode,
+      predictions=predictions,
+      loss=L,
+      train_op=train_op)

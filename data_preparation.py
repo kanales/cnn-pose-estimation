@@ -61,19 +61,23 @@ def similarity(q1, q2):
     """
     return 2 * np.arccos(min(1,np.abs(q1 @ q2)))
 
-def batch(Sdb, Strain, n):
+def batch(Sdb, Strain):
     """
     Generates a batch of `n` elements
     """
     def gen():
-        for x in range(n):
+        while True:
             # Anchor: select random sample from Strain
             anchor = random.choice(Strain)
             # Puller: select most similar from Sdb
             puller = max(Sdb, key = lambda x: similarity(x.quat,anchor.quat))
             # Pusher: same object different pose | random different object 
-            pusher = random.choice([x for x in Sdb if x.cls != anchor.cls])
+            if bool(random.randint(0,1)):
+                pusher = random.choice([x for x in Sdb if x.cls != anchor.cls])
+            else:
+                pusher = random.choice([x for x in Sdb 
+                if x.cls == anchor.cls and x.idx != anchor.idx])
             yield anchor.img
             yield puller.img
             yield pusher.img
-    return np.array(list(gen()))
+    return gen

@@ -7,6 +7,7 @@ def l2_squared(x, y):
     return tf.reduce_sum(tf.square(x - y), 1)
 
 def loss(descriptors, m = 0.01):
+    print(descriptors.shape)
     diff_pos = l2_squared(descriptors[::3], descriptors[1::3])
     diff_neg = l2_squared(descriptors[::3], descriptors[2::3])
     tmp = 1 - (diff_neg / (diff_pos + m))
@@ -15,7 +16,7 @@ def loss(descriptors, m = 0.01):
     
     return L_trip + L_pair
 
-def cnn_model(features, labels, mode):
+def cnn_model_fn(features, mode):
     input_layer = tf.convert_to_tensor(features)
     C = features.shape[-1]
     conv1 = tf.layers.conv2d(
@@ -56,25 +57,26 @@ def cnn_model(features, labels, mode):
         activation = tf.nn.relu
     )
     
-
-    # Mode selection
-
+    ## Mode selection
     # Loss selection
     if mode in (tf.estimator.ModeKeys.TRAIN, tf.estimator.ModeKeys.EVAL):
         L = loss(dense2)
+        tf.summary.scalar('loss', L)
     else:
         L = None
 
     # train_op selection
     if mode == tf.estimator.ModeKeys.TRAIN:
         optimizer = tf.train.AdamOptimizer()
-        train_op = optimizer.minimize(L)
+        train_op = optimizer.minimize(
+            loss=L,
+            global_step=tf.train.get_global_step())
     else:
         train_op = None
     
     # Prediction selection
     if mode == tf.estimator.ModeKeys.PREDICT:
-        predictions = ...
+        predictions = dense2 # ?
     else:
         predictions = None
     

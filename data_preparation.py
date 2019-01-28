@@ -7,7 +7,7 @@ import matplotlib.image as mpimg
 from collections import namedtuple
 from itertools import count
 
-__all__ = ["normalize", "read_images", "similarity", "batch"]
+__all__ = ["normalize", "read_images"]
 
 Sample = namedtuple('Sample', ['cls', 'idx','quat','img'])
 def normalize(mat):
@@ -20,6 +20,11 @@ def normalize(mat):
         v = np.var(mat[:,:,i])
         out[:,:,i] = (mat[:,:,i] - m) / v
     return out
+
+def un_normalize(img):
+    img = img - img.min()
+    img = img * 255 / img.max()
+    return img.astype(int)
 
 def _read_folder(folder, cls, pattern = re.compile(r'[A-Za-z]+[0-9]+\.png')):
     """
@@ -54,30 +59,3 @@ def read_images(path):
             data.append(_read_folder(os.path.join(root,folder), i))
 
     return [l for lst in data for l in lst]
-
-def similarity(q1, q2):
-    """
-    Returns a measure of similarity between two quaternions
-    """
-    return 2 * np.arccos(min(1,np.abs(q1 @ q2)))
-
-def batch(Sdb, Strain):
-    """
-    Generates a batch of `n` elements
-    """
-    def gen():
-        while True:
-            # Anchor: select random sample from Strain
-            anchor = random.choice(Strain)
-            # Puller: select most similar from Sdb
-            puller = max(Sdb, key = lambda x: similarity(x.quat,anchor.quat))
-            # Pusher: same object different pose | random different object 
-            if bool(random.randint(0,1)):
-                pusher = random.choice([x for x in Sdb if x.cls != anchor.cls])
-            else:
-                pusher = random.choice([x for x in Sdb 
-                if x.cls == anchor.cls and x.idx != anchor.idx])
-            yield anchor.img
-            yield puller.img
-            yield pusher.img
-    return gen

@@ -1,4 +1,6 @@
 import tensorflow as tf
+import numpy as np
+import random
 
 def l2_squared(x, y):
     """
@@ -15,6 +17,34 @@ def loss(descriptors, m = 0.01):
     L_pair = tf.reduce_sum(diff_pos)
     
     return L_trip + L_pair
+
+def similarity(q1, q2):
+    """
+    Returns a measure of similarity between two quaternions
+    """
+    return 2 * np.arccos(min(1,np.abs(q1 @ q2)))
+
+def batch(Sdb, Strain):
+    """
+    Generates a batch of `n` elements
+    """
+    def gen():
+        while True:
+            # Anchor: select random sample from Strain
+            anchor = random.choice(Strain)
+            # Puller: select most similar from Sdb
+            puller = max( (x for x in Sdb if x.cls == anchor.cls)
+                        , key = lambda x: similarity(x.quat,anchor.quat))
+            # Pusher: same object different pose | random different object 
+            if bool(random.randint(0,1)):
+                pusher = random.choice([x for x in Sdb if x.cls != anchor.cls])
+            else:
+                pusher = random.choice([x for x in Sdb 
+                if x.cls == anchor.cls and x.idx != anchor.idx])
+            yield anchor.img
+            yield puller.img
+            yield pusher.img
+    return gen
 
 def cnn_model_fn(features, mode):
     input_layer = tf.convert_to_tensor(features)

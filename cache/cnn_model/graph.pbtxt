@@ -642,7 +642,7 @@ node {
     key: "f"
     value {
       func {
-        name: "tf_data_structured_function_wrapper_F5j3Vfv6fsM"
+        name: "tf_data_structured_function_wrapper_zJ7lvCkLfOM"
       }
     }
   }
@@ -20337,7 +20337,7 @@ node {
         dtype: DT_STRING
         tensor_shape {
         }
-        string_val: "_temp_3783b5d87a3b4688a630f343257bb4fd/part"
+        string_val: "_temp_0eeb3a4336e447dfa2b16789919fcd26/part"
       }
     }
   }
@@ -22291,146 +22291,7 @@ node {
 library {
   function {
     signature {
-      name: "tf_data_structured_function_wrapper_Xc1wNaHoqhk"
-      input_arg {
-        name: "arg0"
-        type: DT_INT64
-      }
-      output_arg {
-        name: "pyfunc"
-        type: DT_INT64
-      }
-      description: "Wrapper for passing nested structures to and from tf.data functions."
-      is_stateful: true
-    }
-    node_def {
-      name: "PyFunc"
-      op: "PyFunc"
-      input: "arg0"
-      device: "/device:CPU:0"
-      attr {
-        key: "Tin"
-        value {
-          list {
-            type: DT_INT64
-          }
-        }
-      }
-      attr {
-        key: "Tout"
-        value {
-          list {
-            type: DT_INT64
-          }
-        }
-      }
-      attr {
-        key: "token"
-        value {
-          s: "pyfunc_296"
-        }
-      }
-    }
-    ret {
-      key: "pyfunc"
-      value: "PyFunc:output:0"
-    }
-  }
-  function {
-    signature {
-      name: "tf_data_structured_function_wrapper_sGhUGhfI5vI"
-      input_arg {
-        name: "arg0"
-        type: DT_INT64
-      }
-      output_arg {
-        name: "pyfunc"
-        type: DT_FLOAT
-      }
-      description: "Wrapper for passing nested structures to and from tf.data functions."
-      is_stateful: true
-    }
-    node_def {
-      name: "PyFunc"
-      op: "PyFunc"
-      input: "arg0"
-      device: "/device:CPU:0"
-      attr {
-        key: "Tin"
-        value {
-          list {
-            type: DT_INT64
-          }
-        }
-      }
-      attr {
-        key: "Tout"
-        value {
-          list {
-            type: DT_FLOAT
-          }
-        }
-      }
-      attr {
-        key: "token"
-        value {
-          s: "pyfunc_295"
-        }
-      }
-    }
-    ret {
-      key: "pyfunc"
-      value: "PyFunc:output:0"
-    }
-  }
-  function {
-    signature {
-      name: "tf_data_structured_function_wrapper_R06cJYfgxWs"
-      input_arg {
-        name: "arg0"
-        type: DT_INT32
-      }
-      output_arg {
-        name: "pyfunc"
-        type: DT_INT64
-      }
-      description: "Wrapper for passing nested structures to and from tf.data functions."
-      is_stateful: true
-    }
-    node_def {
-      name: "PyFunc"
-      op: "PyFunc"
-      device: "/device:CPU:0"
-      attr {
-        key: "Tin"
-        value {
-          list {
-          }
-        }
-      }
-      attr {
-        key: "Tout"
-        value {
-          list {
-            type: DT_INT64
-          }
-        }
-      }
-      attr {
-        key: "token"
-        value {
-          s: "pyfunc_294"
-        }
-      }
-    }
-    ret {
-      key: "pyfunc"
-      value: "PyFunc:output:0"
-    }
-  }
-  function {
-    signature {
-      name: "tf_data_structured_function_wrapper_F5j3Vfv6fsM"
+      name: "tf_data_structured_function_wrapper_zJ7lvCkLfOM"
       input_arg {
         name: "arg0"
         type: DT_INT32
@@ -22473,7 +22334,7 @@ library {
         key: "finalize_func"
         value {
           func {
-            name: "tf_data_structured_function_wrapper_Xc1wNaHoqhk"
+            name: "tf_data_structured_function_wrapper_Upww3BajU5A"
           }
         }
       }
@@ -22481,7 +22342,7 @@ library {
         key: "init_func"
         value {
           func {
-            name: "tf_data_structured_function_wrapper_R06cJYfgxWs"
+            name: "tf_data_structured_function_wrapper_euPY8E7rsRY"
           }
         }
       }
@@ -22489,7 +22350,7 @@ library {
         key: "next_func"
         value {
           func {
-            name: "tf_data_structured_function_wrapper_sGhUGhfI5vI"
+            name: "tf_data_structured_function_wrapper_LX7PcC7PFMI"
           }
         }
       }
@@ -22523,6 +22384,145 @@ library {
     ret {
       key: "generatordataset"
       value: "GeneratorDataset:handle:0"
+    }
+  }
+  function {
+    signature {
+      name: "tf_data_structured_function_wrapper_euPY8E7rsRY"
+      input_arg {
+        name: "arg0"
+        type: DT_INT32
+      }
+      output_arg {
+        name: "pyfunc"
+        type: DT_INT64
+      }
+      description: "Wrapper for passing nested structures to and from tf.data functions."
+      is_stateful: true
+    }
+    node_def {
+      name: "PyFunc"
+      op: "PyFunc"
+      device: "/device:CPU:0"
+      attr {
+        key: "Tin"
+        value {
+          list {
+          }
+        }
+      }
+      attr {
+        key: "Tout"
+        value {
+          list {
+            type: DT_INT64
+          }
+        }
+      }
+      attr {
+        key: "token"
+        value {
+          s: "pyfunc_0"
+        }
+      }
+    }
+    ret {
+      key: "pyfunc"
+      value: "PyFunc:output:0"
+    }
+  }
+  function {
+    signature {
+      name: "tf_data_structured_function_wrapper_Upww3BajU5A"
+      input_arg {
+        name: "arg0"
+        type: DT_INT64
+      }
+      output_arg {
+        name: "pyfunc"
+        type: DT_INT64
+      }
+      description: "Wrapper for passing nested structures to and from tf.data functions."
+      is_stateful: true
+    }
+    node_def {
+      name: "PyFunc"
+      op: "PyFunc"
+      input: "arg0"
+      device: "/device:CPU:0"
+      attr {
+        key: "Tin"
+        value {
+          list {
+            type: DT_INT64
+          }
+        }
+      }
+      attr {
+        key: "Tout"
+        value {
+          list {
+            type: DT_INT64
+          }
+        }
+      }
+      attr {
+        key: "token"
+        value {
+          s: "pyfunc_2"
+        }
+      }
+    }
+    ret {
+      key: "pyfunc"
+      value: "PyFunc:output:0"
+    }
+  }
+  function {
+    signature {
+      name: "tf_data_structured_function_wrapper_LX7PcC7PFMI"
+      input_arg {
+        name: "arg0"
+        type: DT_INT64
+      }
+      output_arg {
+        name: "pyfunc"
+        type: DT_FLOAT
+      }
+      description: "Wrapper for passing nested structures to and from tf.data functions."
+      is_stateful: true
+    }
+    node_def {
+      name: "PyFunc"
+      op: "PyFunc"
+      input: "arg0"
+      device: "/device:CPU:0"
+      attr {
+        key: "Tin"
+        value {
+          list {
+            type: DT_INT64
+          }
+        }
+      }
+      attr {
+        key: "Tout"
+        value {
+          list {
+            type: DT_FLOAT
+          }
+        }
+      }
+      attr {
+        key: "token"
+        value {
+          s: "pyfunc_1"
+        }
+      }
+    }
+    ret {
+      key: "pyfunc"
+      value: "PyFunc:output:0"
     }
   }
 }

@@ -9,8 +9,11 @@ from data_preparation import read_images
 from model import similarity, get_model, eval_model, batch, MODEL_PATH, CACHE_DIR
 from sklearn.neighbors import KNeighborsClassifier
 
-def get_hist(Sdb, Sdb_descriptors, Stest, Stest_descriptors):
+def get_hist(model, Dataset):
     neigh = KNeighborsClassifier(n_neighbors=1)
+    Sdb, Stest = Dataset['Sdb'], Dataset['Stest']
+
+    Sdb_descriptors, Stest_descriptors = eval_model(model, Dataset)
     X, y = Sdb_descriptors, [x.cls for x in Sdb]
     neigh.fit(X,y)
 
@@ -36,20 +39,19 @@ def get_hist(Sdb, Sdb_descriptors, Stest, Stest_descriptors):
     return hist
 
 # train input
-def gen_train_input_fn(Sdb,Strain, batch_size):
+def gen_train_input_fn(features,batch_size):
     #Sdb    = features['Sdb']
     #Strain = features['Strain']
-    #dataset = tf.data.Dataset.from_tensor_slices(tf.convert_to_tensor(batch(Sdb,Strain,batch_size)))
+    #dataset = tf.data.Dataset.from_tensoxr_slices(tf.convert_to_tensor(batch(Sdb,Strain,batch_size)))
     assert(batch_size % 3 == 0)
     def inner():
         #b = batch(Sdb,Strain,batch_size)
         #dataset = tf.data.Dataset.from_tensor_slices(tf.convert_to_tensor(b))
-        dataset = tf.data.Dataset.from_generator(
-            batch(Sdb,Strain),
+        return tf.data.Dataset.from_generator(
+            batch(features),
             tf.float32,
             tf.TensorShape([64, 64, 3])
-        )
-        return dataset.batch(batch_size)
+        ).batch(batch_size)
     return inner
 
 def main():
@@ -64,10 +66,12 @@ def main():
     with open('dataset/real/training_split.txt') as f:
         train_idxs = set(int(x) for x in f.read().split(', '))
     test_idxs = set(range(len(real))) - train_idxs
-    Sdb    = coarse
-    Strain = fine + [real[i] for i in train_idxs]
-    Stest  = [real[i] for i in test_idxs]
-
+    Dataset = {
+        'Sdb'    : coarse,
+        'Strain' : fine + [real[i] for i in train_idxs],
+        'Stest'  : [real[i] for i in test_idxs],
+    }
+   
     print('\rData loaded          ')
 
  
@@ -85,14 +89,13 @@ def main():
         for h in hists:
             f.write(','.join(map(str,h)) + '\n')
     
-    for x in range(10,1000,10):
+    for x in range(10,100,10):
         print('\rIteration {}/{}    '.format(x,1000), end='')
         cnn_descriptor.train(
-            input_fn=gen_train_input_fn(Sdb,Strain,300),
+            input_fn=gen_train_input_fn(Dataset,300),
             max_steps=x)
 
-        Sdb_descriptors, Stest_descriptors = eval_model(cnn_descriptor, Sdb, Stest)
-        hist = get_hist(Sdb, Sdb_descriptors, Stest, Stest_descriptors)
+        hist = get_hist(cnn_descriptor, Dataset)
         print(hist)
         with open('hists.csv', 'a+') as f:
             f.write(','.join(map(str,hist)) + '\n')

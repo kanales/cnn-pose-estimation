@@ -28,10 +28,11 @@ def similarity(q1, q2):
     """
     return 2 * np.arccos(min(1,np.abs(q1 @ q2)))
 
-def batch(Sdb, Strain):
+def batch(dataset):
     """
     Generates a batch of `n` elements
     """
+    Strain, Sdb = dataset['Strain'], dataset['Sdb']
     def gen():
         while True:
             # Anchor: select random sample from Strain
@@ -124,18 +125,18 @@ def get_model():
     return tf.estimator.Estimator(
         model_fn=_cnn_model_fn, model_dir=MODEL_PATH)
 
-def eval_model(model, Sdb, Stest):
+def eval_model(model, dataset):
     """
     Evaluates model for a given Sdb and Stest
     """
-    Sdb_img = np.array([x.img for x in Sdb])
+    Sdb_img = np.array([x.img for x in dataset['Sdb']])
     eval_input_fn = tf.estimator.inputs.numpy_input_fn(
         Sdb_img,
         shuffle=False,
     )
 
     Sdb_descriptors = list(model.predict(input_fn=eval_input_fn))
-    Stest_img = np.array([x.img for x in Stest])
+    Stest_img = np.array([x.img for x in dataset['Stest']])
     eval_input_fn = tf.estimator.inputs.numpy_input_fn(
         Stest_img,
         shuffle=False,

@@ -1,6 +1,10 @@
 import tensorflow as tf
 import numpy as np
 import random
+import os
+
+CACHE_DIR = 'cache/'
+MODEL_PATH = os.path.join(CACHE_DIR,'cnn_model')
 
 def l2_squared(x, y):
     """
@@ -46,7 +50,7 @@ def batch(Sdb, Strain):
             yield pusher.img
     return gen
 
-def cnn_model_fn(features, mode):
+def _cnn_model_fn(features, mode):
     input_layer = tf.convert_to_tensor(features)
     C = features.shape[-1]
     conv1 = tf.layers.conv2d(
@@ -115,3 +119,27 @@ def cnn_model_fn(features, mode):
       predictions=predictions,
       loss=L,
       train_op=train_op)
+
+def get_model():
+    return tf.estimator.Estimator(
+        model_fn=_cnn_model_fn, model_dir=MODEL_PATH)
+
+def eval_model(model, Sdb, Stest):
+    """
+    Evaluates model for a given Sdb and Stest
+    """
+    Sdb_img = np.array([x.img for x in Sdb])
+    eval_input_fn = tf.estimator.inputs.numpy_input_fn(
+        Sdb_img,
+        shuffle=False,
+    )
+
+    Sdb_descriptors = list(model.predict(input_fn=eval_input_fn))
+    Stest_img = np.array([x.img for x in Stest])
+    eval_input_fn = tf.estimator.inputs.numpy_input_fn(
+        Stest_img,
+        shuffle=False,
+    )
+
+    Stest_descriptors = list(model.predict(input_fn=eval_input_fn))
+    return Sdb_descriptors, Stest_descriptors

@@ -7,52 +7,6 @@ import os
 from shutil import rmtree
 from data_preparation import read_images
 from model import similarity, get_model, eval_model, batch, MODEL_PATH, CACHE_DIR
-from sklearn.neighbors import KNeighborsClassifier
-
-def get_hist(model, Dataset):
-    neigh = KNeighborsClassifier(n_neighbors=1)
-    Sdb, Stest = Dataset['Sdb'], Dataset['Stest']
-
-    Sdb_descriptors, Stest_descriptors = eval_model(model, Dataset)
-    X, y = Sdb_descriptors, [x.cls for x in Sdb]
-    neigh.fit(X,y)
-
-    idxs = neigh.kneighbors(Stest_descriptors)[1]
-
-    hist = np.array([0,0,0,0])
-    N = len(Stest_descriptors)
-    for i in range(N):
-        db = Sdb[idxs[i][0]]
-        test = Stest[i]
-
-        if db.cls != test.cls:
-            continue
-
-        theta = np.rad2deg(similarity(db.quat, test.quat))
-        if theta < 10:
-            hist[0] += 1
-        if theta < 20:
-            hist[1] += 1
-        if theta < 40:
-            hist[2] += 1
-        hist[3] += 1
-    return hist
-
-# train input
-def gen_train_input_fn(features,batch_size):
-    #Sdb    = features['Sdb']
-    #Strain = features['Strain']
-    #dataset = tf.data.Dataset.from_tensoxr_slices(tf.convert_to_tensor(batch(Sdb,Strain,batch_size)))
-    assert(batch_size % 3 == 0)
-    def inner():
-        #b = batch(Sdb,Strain,batch_size)
-        #dataset = tf.data.Dataset.from_tensor_slices(tf.convert_to_tensor(b))
-        return tf.data.Dataset.from_generator(
-            batch(features),
-            tf.float32,
-            tf.TensorShape([64, 64, 3])
-        ).batch(batch_size)
-    return inner
 
 def main():
     tf.logging.set_verbosity(tf.logging.ERROR)

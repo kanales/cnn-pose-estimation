@@ -1,4 +1,6 @@
 dataset/*
+cache/*
+hists.csv
 
 *.swp
 

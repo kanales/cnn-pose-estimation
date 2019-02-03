@@ -26,7 +26,7 @@ def un_normalize(img):
     img = img * 255 / img.max()
     return img.astype(int)
 
-def _read_folder(folder, cls, pattern = re.compile(r'[A-Za-z]+[0-9]+\.png')):
+def _read_folder(folder, cls, pattern = re.compile(r'[A-Za-z]+([0-9]+)\.png')):
     """
     Helper function, iterates through a folder reading samples
     """
@@ -40,12 +40,11 @@ def _read_folder(folder, cls, pattern = re.compile(r'[A-Za-z]+[0-9]+\.png')):
             quats.append(np.array([float(x) for x in line2.split()]))
 
     # images
-    imgs = []
-    
+    imgs = [None] * len(quats)
     for imname in os.listdir(folder):
-        if pattern.match(imname):
-            imgs.append(
-                normalize(mpimg.imread(os.path.join(folder,imname))))
+        m = pattern.match(imname)
+        if m:
+            imgs[int(m.group(1))] = normalize(mpimg.imread(os.path.join(folder,imname)))
             
     return [Sample(cls, idx, quat, img) for idx, quat, img in zip(count(),quats,imgs)]
 

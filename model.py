@@ -15,6 +15,7 @@ def l2_squared(x, y):
     return tf.reduce_sum(tf.square(x - y), 1)
 
 def loss(descriptors, m = 0.01):
+    print(descriptors)
     diff_pos = l2_squared(descriptors[::3], descriptors[1::3])
     diff_neg = l2_squared(descriptors[::3], descriptors[2::3])
     tmp = 1 - (diff_neg / (diff_pos + m))
@@ -28,6 +29,92 @@ def similarity(q1, q2):
     Returns a measure of similarity between two quaternions
     """
     return 2 * np.arccos(min(1,np.abs(q1 @ q2)))
+
+def _cnn_model_fn(features, labels, mode):
+    input_layer = tf.convert_to_tensor(features)
+    C = features.shape[-1]
+    conv1 = tf.layers.conv2d(
+        inputs = input_layer,
+        filters = 16,
+        kernel_size = [8,8],
+        activation = tf.nn.relu
+    )
+
+    pool1 = tf.layers.max_pooling2d(
+        inputs = conv1,
+        pool_size = [2,2],
+        strides = 2
+    )
+
+    conv2 = tf.layers.conv2d(
+        inputs = pool1,
+        filters = 7,
+        kernel_size = [5,5],
+        activation = tf.nn.relu
+    )
+    pool2 = tf.layers.max_pooling2d(
+        inputs = conv2,
+        pool_size = [2,2],
+        strides = 2
+    )
+
+    pool2_flat = tf.reshape(pool2, [-1, 12*12*7])
+    dense1 = tf.layers.dense(
+        inputs = pool2_flat,
+        units = 256,
+        activation = tf.nn.relu
+    )
+
+    dense2 = tf.layers.dense(
+        inputs = dense1,
+        units = 16,
+        activation= tf.identity,
+        name = 'descriptor'
+    )
+    
+    ## Mode selection
+
+    # Prediction selection
+    if mode == tf.estimator.ModeKeys.PREDICT:
+        predictions = dense2 # ?
+
+        return tf.estimator.EstimatorSpec(
+            mode=mode,
+            predictions=predictions)
+
+    # Loss selection
+    if mode in (tf.estimator.ModeKeys.TRAIN, tf.estimator.ModeKeys.EVAL):
+        Lt, Lp = loss(dense2)
+        L = tf.add(Lt, Lp, name='full_loss')
+        tf.summary.scalar('loss',L)
+
+    # train_op selection
+    if mode == tf.estimator.ModeKeys.TRAIN:
+        optimizer = tf.train.AdamOptimizer()
+        train_op = optimizer.minimize(
+            loss=L,
+            global_step=tf.train.get_global_step())
+
+        return tf.estimator.EstimatorSpec(
+            mode=mode,
+            loss=L,
+            train_op=train_op)
+
+    if mode == tf.estimator.ModeKeys.EVAL:
+        # Sdb_img = np.array([x.img for x in dataset['Sdb']])
+
+        # Sdb_descriptors = list(model.predict(input_fn=eval_input_fn))
+        # Stest_img = np.array([x.img for x in dataset['Stest']])
+
+        # Stest_descriptors = list(model.predict(input_fn=eval_input_fn))
+
+        eval_metric_ops = {
+             "histogram": []
+        }
+        return tf.estimator.EstimatorSpec(
+            mode=mode,
+            loss=L,
+            eval_metric_ops=eval_metric_ops)
 
 def get_triplets(Sdb, Strain):
     """
@@ -74,90 +161,7 @@ def get_batch(Sdb, Strain, verbose = True):
                 yield (pusher.img, pusher.cls)
     return gen
 
-def _cnn_model_fn(features, labels, mode):
-    input_layer = tf.convert_to_tensor(features)
-    C = features.shape[-1]
-    conv1 = tf.layers.conv2d(
-        inputs = input_layer,
-        filters = 16,
-        kernel_size = [8,8],
-        activation = tf.nn.relu
-    )
 
-    pool1 = tf.layers.max_pooling2d(
-        inputs = conv1,
-        pool_size = [2,2],
-        strides = 2
-    )
-
-    conv2 = tf.layers.conv2d(
-        inputs = pool1,
-        filters = 7,
-        kernel_size = [5,5],
-        activation = tf.nn.relu
-    )
-    pool2 = tf.layers.max_pooling2d(
-        inputs = conv2,
-        pool_size = [2,2],
-        strides = 2
-    )
-
-    pool2_flat = tf.reshape(pool2, [-1, 12*12*7])
-    dense1 = tf.layers.dense(
-        inputs = pool2_flat,
-        units = 256,
-        activation = tf.nn.relu
-    )
-
-    dense2 = tf.layers.dense(
-        inputs = dense1,
-        units = 16,
-        activation = tf.nn.relu
-    )
-    
-    ## Mode selection
-
-    # Prediction selection
-    if mode == tf.estimator.ModeKeys.PREDICT:
-        predictions = dense2 # ?
-
-        return tf.estimator.EstimatorSpec(
-            mode=mode,
-            predictions=predictions)
-
-    # Loss selection
-    if mode in (tf.estimator.ModeKeys.TRAIN, tf.estimator.ModeKeys.EVAL):
-        Lt, Lp = loss(dense2)
-        L = tf.add(Lt, Lp, name='full_loss')
-        tf.summary.scalar('loss',L)
-
-    # train_op selection
-    if mode == tf.estimator.ModeKeys.TRAIN:
-        optimizer = tf.train.AdamOptimizer()
-        train_op = optimizer.minimize(
-            loss=L,
-            global_step=tf.train.get_global_step())
-
-        return tf.estimator.EstimatorSpec(
-            mode=mode,
-            loss=L,
-            train_op=train_op)
-
-    if mode == tf.estimator.ModeKeys.EVAL:
-        # Sdb_img = np.array([x.img for x in dataset['Sdb']])
-
-        # Sdb_descriptors = list(model.predict(input_fn=eval_input_fn))
-        # Stest_img = np.array([x.img for x in dataset['Stest']])
-
-        # Stest_descriptors = list(model.predict(input_fn=eval_input_fn))
-
-        eval_metric_ops = {
-             "histogram": []
-        }
-        return tf.estimator.EstimatorSpec(
-            mode=mode,
-            loss=L,
-            eval_metric_ops=eval_metric_ops)
 
 # train input
 def gen_train_input_fn(Sdb, Strain,batch_size):

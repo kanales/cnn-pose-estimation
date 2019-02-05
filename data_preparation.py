@@ -29,11 +29,13 @@ def un_normalize(img):
     return img.astype(int)
 
 def _processer(imname, pattern = re.compile(r'.*[A-Za-z]+([0-9]+)\.png')):
+    
     m = pattern.match(imname)
     if m:
-        return int(m.group(1)), normalize(mpimg.imread(imname))
+        out = int(m.group(1)), normalize(mpimg.imread(imname))
     else:
-        return None, None
+        out = None, None
+    return out
 
 def _read_folder(folder, cls):
     """
@@ -54,7 +56,7 @@ def _read_folder(folder, cls):
     pool = Pool()
     
     for i, img in pool.map(_processer, [os.path.join(folder,imname) for imname in os.listdir(folder)]):
-        if i and img is not None:
+        if i is not None and img is not None:
             imgs[i] = img
     pool.close()
     pool.join()

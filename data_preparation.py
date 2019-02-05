@@ -7,6 +7,8 @@ import matplotlib.image as mpimg
 from collections import namedtuple
 from itertools import count
 
+from multiprocessing import Pool
+
 __all__ = ["normalize", "read_images"]
 
 Sample = namedtuple('Sample', ['cls', 'idx','quat','img'])
@@ -26,7 +28,14 @@ def un_normalize(img):
     img = img * 255 / img.max()
     return img.astype(int)
 
-def _read_folder(folder, cls, pattern = re.compile(r'[A-Za-z]+([0-9]+)\.png')):
+def _processer(imname, pattern = re.compile(r'.*[A-Za-z]+([0-9]+)\.png')):
+    m = pattern.match(imname)
+    if m:
+        return int(m.group(1)), normalize(mpimg.imread(imname))
+    else:
+        return None, None
+
+def _read_folder(folder, cls):
     """
     Helper function, iterates through a folder reading samples
     """
@@ -41,10 +50,19 @@ def _read_folder(folder, cls, pattern = re.compile(r'[A-Za-z]+([0-9]+)\.png')):
 
     # images
     imgs = [None] * len(quats)
-    for imname in os.listdir(folder):
-        m = pattern.match(imname)
-        if m:
-            imgs[int(m.group(1))] = normalize(mpimg.imread(os.path.join(folder,imname)))
+
+    pool = Pool()
+    
+    for i, img in pool.map(_processer, [os.path.join(folder,imname) for imname in os.listdir(folder)]):
+        if i and img is not None:
+            imgs[i] = img
+    pool.close()
+    pool.join()
+
+    # for imname in os.listdir(folder):
+    #     m = pattern.match(imname)
+    #     if m:
+    #         imgs[int(m.group(1))] = normalize(mpimg.imread(os.path.join(folder,imname)))
             
     return [Sample(cls, idx, quat, img) for idx, quat, img in zip(count(),quats,imgs)]
 
